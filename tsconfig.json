@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "esnext",                      
+        "module": "commonjs",                         
+        "outDir": "./build",                        
+        "strict": true,                          
+        "esModuleInterop": true,
+        "declaration": true,              
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
