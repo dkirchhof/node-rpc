@@ -6,17 +6,15 @@ type AsyncFunction<T> = T extends (...params: infer P) => infer R ? (...params: 
 
 export type Async<T> = { [K in keyof T]: AsyncFunction<T[K]>; };
 
-export function API<T extends { [s: string]: (...params: any[]) => any; }>(api: T) {
-    return async (req: IncomingMessage) => {
-        const procedureName = req.headers["x-rpc-procedure"] as keyof T;
-        const procedure = api[procedureName];
-    
-        const { data, filePaths } = await parseFormData(req);
-        const params = toParams(data);
+export async function handleAPIRequest(req: IncomingMessage, api: any) {
+    const procedureName = req.headers["x-rpc-procedure"] as any;
+    const procedure = api[procedureName];
 
-        return Promise.resolve(procedure(...params))
-            .finally(() => deleteFilesGracefully(filePaths));
-    };
+    const { data, filePaths } = await parseFormData(req);
+    const params = toParams(data);
+
+    return Promise.resolve(procedure(...params))
+        .finally(() => deleteFilesGracefully(filePaths));
 }
 
 function parseFormData(req: IncomingMessage) {

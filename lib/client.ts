@@ -1,12 +1,26 @@
 import axios, { AxiosResponse, AxiosError } from "axios";
 
-export function API<T extends any>(endpoint: string) {
-    return <K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) => {
-        return new RPC<ReturnType<T[K]>>(endpoint, procedure, params);
+export interface IAPI<T extends any> {
+    call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): RPC<ReturnType<T[K]>>;
+}
+
+export class API<T extends any> implements IAPI<T> {
+    constructor(private readonly endpoint: string) {
+
+    }
+
+    public call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) {
+        return new RPC<ReturnType<T[K]>>(this.endpoint, procedure, params);
     }
 }
 
-class RPC<T> {
+export interface IRPC<T> {
+    onSuccess(callback: (result: T) => any): this;
+    onFailure(callback: (error: string) => any): this;
+    onProgress(callback: (progress: number) => any): this;
+}
+
+class RPC<T> implements IRPC<T> {
     private readonly progressCallbacks: Array<(progress: number) => any> = [];
     private readonly promise: Promise<AxiosResponse>;
 

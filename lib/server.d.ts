@@ -4,7 +4,5 @@ declare type AsyncFunction<T> = T extends (...params: infer P) => infer R ? (...
 export declare type Async<T> = {
     [K in keyof T]: AsyncFunction<T[K]>;
 };
-export declare function API<T extends {
-    [s: string]: (...params: any[]) => any;
-}>(api: T): (req: IncomingMessage) => Promise<any>;
+export declare function handleAPIRequest(req: IncomingMessage, api: any): Promise<any>;
 export {};

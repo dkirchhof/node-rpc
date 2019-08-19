@@ -5,18 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const micro_1 = require("micro");
 const micro_cors_1 = __importDefault(require("micro-cors"));
-const server_1 = require("../server");
-const apiHandler = server_1.API({
+const server_1 = require("../lib/server");
+const api = {
     add: (a, b) => a + b,
     subtract: (a, b) => a - b,
     toUpperCase: (str) => str.toUpperCase(),
-});
+};
 const handler = async (req, res) => {
     if (req.method === 'OPTIONS') {
         return micro_1.send(res, 200, 'ok!');
     }
     try {
-        return await apiHandler(req);
+        return await server_1.handleAPIRequest(req, api);
     }
     catch (e) {
         return await micro_1.send(res, 500, e.message);

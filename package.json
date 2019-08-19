@@ -1,10 +1,10 @@
 {
-  "name": "rpc-express",
+  "name": "node-rpc",
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
     "dev": "tsc -w",
-    "start-example-server": "micro build/example/server.js"
+    "start-example-server": "micro example/example-server.js"
   },
   "devDependencies": {
     "@types/formidable": "^1.0.31",

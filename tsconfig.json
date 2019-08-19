@@ -1,13 +1,13 @@
 {
     "compilerOptions": {
-        "target": "esnext",                      
-        "module": "commonjs",                         
-        "outDir": "./build",                        
-        "strict": true,                          
+        "target": "esnext",
+        "module": "commonjs",
+        "strict": true,
         "esModuleInterop": true,
-        "declaration": true,              
+        "declaration": true,
     },
     "include": [
-        "src/**/*"
+        "lib/**/*",
+        "example/**/*"
     ]
 }
