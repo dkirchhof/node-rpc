@@ -1,22 +1,28 @@
 export interface IAPI<T extends any> {
-    call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): RPC<ReturnType<T[K]>>;
+    call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
+    callCached<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
+    callMaybe<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail | INoCall>;
+}
+interface ISuccess<T = any> {
+    type: "success";
+    code: number;
+    data: T;
+}
+interface IFail {
+    type: "fail";
+    code: number;
+    error: string;
+}
+interface INoCall {
+    type: "noCall";
 }
 export declare class API<T extends any> implements IAPI<T> {
     private readonly endpoint;
+    private readonly cachedMaybes;
+    private readonly cachedResponses;
     constructor(endpoint: string);
-    call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): RPC<ReturnType<T[K]>>;
-}
-export interface IRPC<T> {
-    onSuccess(callback: (result: T) => any): this;
-    onFailure(callback: (error: string) => any): this;
-    onProgress(callback: (progress: number) => any): this;
-}
-declare class RPC<T> implements IRPC<T> {
-    private readonly progressCallbacks;
-    private readonly promise;
-    constructor(endpoint: string, procedure: string, params: any[]);
-    onSuccess(callback: (result: T) => any): this;
-    onFailure(callback: (error: string) => any): this;
-    onProgress(callback: (progress: number) => any): this;
+    call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): Promise<IFail | ISuccess<any>>;
+    callMaybe<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<IFail | INoCall | ISuccess<any>>;
+    callCached<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<IFail | ISuccess<any>>;
 }
 export {};

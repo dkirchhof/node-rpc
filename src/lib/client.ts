@@ -1,59 +1,105 @@
-import axios, { AxiosResponse, AxiosError } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
 export interface IAPI<T extends any> {
-    call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): RPC<ReturnType<T[K]>>;
+    call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
+    callCached<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
+    callMaybe<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail | INoCall>;
+}
+
+interface ISuccess<T = any> {
+    type: "success";
+    code: number;
+    data: T;
+}
+
+interface IFail {
+    type: "fail";
+    code: number;
+    error: string;
+}
+
+interface INoCall {
+    type: "noCall";
 }
 
 export class API<T extends any> implements IAPI<T> {
+    private readonly cachedMaybes = new Map<number, { date: number; }>();
+    private readonly cachedResponses = new Map<number, { date: number; response: ISuccess<any>; }>();
+
     constructor(private readonly endpoint: string) {
 
     }
 
-    public call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) {
-        return new RPC<ReturnType<T[K]>>(this.endpoint, procedure, params);
-    }
-}
-
-export interface IRPC<T> {
-    onSuccess(callback: (result: T) => any): this;
-    onFailure(callback: (error: string) => any): this;
-    onProgress(callback: (progress: number) => any): this;
-}
-
-class RPC<T> implements IRPC<T> {
-    private readonly progressCallbacks: Array<(progress: number) => any> = [];
-    private readonly promise: Promise<AxiosResponse>;
-
-    constructor(endpoint: string, procedure: string, params: any[]) {
+    public async call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) {
         const data = toFormData(params);
 
-        this.promise = axios.request({
-            url: endpoint,
+        const response = await request<ReturnType<T[K]>>({
+            url: this.endpoint,
             method: "post",
             headers: { "X-RPC-Procedure": procedure },
             data,
-            onUploadProgress: event => this.progressCallbacks.forEach(callback => callback(event.loaded / event.total)),
+            // onUploadProgress: event => this.progressCallbacks.forEach(callback => callback(event.loaded / event.total)),
         });
+
+        if(response.code < 400) {
+            const result: ISuccess = { 
+                type: "success",
+                code: response.code,
+                data: response.data!,
+            };
+    
+            return result;
+        } else {
+            const result: IFail = {
+                type: "fail",
+                code: response.code,
+                error: response.error!,
+            };
+            
+            return result;
+        }
     }
 
-    onSuccess(callback: (result: T) => any) {
-        this.promise
-            .then((response: AxiosResponse) => callback(response.data))
-            .catch(() => { });
+    public async callMaybe<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>) {
+        const hash = createHash(JSON.stringify({ procedure, params }));
 
-        return this;
+        const fromCache = this.cachedMaybes.get(hash);
+        const now = new Date().getTime();
+
+        if(!fromCache || now - fromCache.date > cacheTime) {
+            const response = await this.call(procedure, ...params);
+            
+            if(response.type === "success") {
+                this.cachedMaybes.set(hash, { date: now });
+            }
+
+            return response;
+        } else {
+            const response: INoCall = {
+                type: "noCall",
+            };
+
+            return response;
+        }
     }
+    
+    public async callCached<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>) {
+        const hash = createHash(JSON.stringify({ procedure, params }));
 
-    onFailure(callback: (error: string) => any) {
-        this.promise.catch((error: AxiosError) => callback(error.response!.data));
+        const fromCache = this.cachedResponses.get(hash);
+        const now = new Date().getTime();
 
-        return this;
-    }
+        if(!fromCache || now - fromCache.date > cacheTime) {
+            const response = await this.call(procedure, ...params);
+            
+            if(response.type === "success") {
+                this.cachedResponses.set(hash, { date: now, response });
+            }
 
-    onProgress(callback: (progress: number) => any) {
-        this.progressCallbacks.push(callback);
-
-        return this;
+            return response;
+        } else {
+            return fromCache.response;
+        }
     }
 }
 
@@ -81,4 +127,42 @@ function toFormData(params: any[]) {
     });
 
     return data;
+}
+
+async function request<T>(config: AxiosRequestConfig): Promise<{ code: number; data?: T; error?: string; }> {
+    try {
+        const result = await axios.request(config);
+
+        return {
+            code: result.status,
+            data: result.data,
+        }
+    }
+    catch(e) {
+        if(e.response) {
+            return {
+                code: e.response.status,
+                error: e.response.data,
+            }
+        } else {
+            return {
+                code: 500,
+                error: e.message,
+            }
+        }
+    }
+}
+
+function createHash(str: string) {
+    let h = 5381;
+    let i = str.length;
+  
+    while(i) {
+        h = (h * 33) ^ str.charCodeAt(--i);
+    }
+  
+    /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+     * integers. Since we want the results to be always positive, convert the
+     * signed int to an unsigned by doing an unsigned bitshift. */
+    return h >>> 0;
 }
