@@ -1,3 +1,12 @@
+```json
+{
+    "@types/micro": "^7.3.3",
+    "@types/micro-cors": "^0.1.0",
+    "micro": "^9.3.4",
+    "micro-cors": "^0.1.1"
+}
+```
+
 ```ts
 interface IApi {
     add: (a: number, b: number) => number;
