@@ -2,6 +2,8 @@ import axios, { AxiosRequestConfig } from "axios";
 
 export interface IAPI<T extends any> {
     call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
+    callWithProgress<K extends keyof T & string>(onProgress: () => number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
+
     callCached<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
     callMaybe<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail | INoCall>;
 }
@@ -31,6 +33,10 @@ export class API<T extends any> implements IAPI<T> {
     }
 
     public async call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) {
+        return this.callWithProgress(() => { }, procedure, ...params);
+    }
+
+    public async callWithProgress<K extends keyof T & string>(onProgress: (progress: number) => any, procedure: K, ...params: Parameters<T[K]>) {
         const data = toFormData(params);
 
         const response = await request<ReturnType<T[K]>>({
@@ -38,7 +44,7 @@ export class API<T extends any> implements IAPI<T> {
             method: "post",
             headers: { "X-RPC-Procedure": procedure },
             data,
-            // onUploadProgress: event => this.progressCallbacks.forEach(callback => callback(event.loaded / event.total)),
+            onUploadProgress: event => onProgress(event.loaded / event.total),
         });
 
         if(response.code < 400) {
