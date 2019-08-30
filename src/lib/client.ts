@@ -1,11 +1,19 @@
 import axios, { AxiosRequestConfig } from "axios";
 
 export interface IAPI<T extends any> {
-    call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
-    callWithProgress<K extends keyof T & string>(onProgress: (progress: number) => any, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
+    call: (options?: ICallBaseOptions) => CallFunction<T>;
+    callCached: (options: ICallCachedOptions) => CallFunction<T>;
+    callMaybe: (options: ICallCachedOptions) => CallFunction<T>;
+}
 
-    callCached<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail>;
-    callMaybe<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>): Promise<ISuccess<ReturnType<T[K]>> | IFail | INoCall>;
+export type CallFunction<T extends any> = <K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) => Promise<ISuccess<ReturnType<T[K]>> | IFail | INoCall>;
+
+export interface ICallBaseOptions {
+    onProgress?: (progress: number) => any;
+}
+
+export interface ICallCachedOptions extends ICallBaseOptions {
+    cacheTime: number;
 }
 
 interface ISuccess<T = any> {
@@ -32,80 +40,87 @@ export class API<T extends any> implements IAPI<T> {
 
     }
 
-    public async call<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) {
-        return this.callWithProgress(() => { }, procedure, ...params);
-    }
+    public call<K extends keyof T & string>(options?: ICallBaseOptions) {
+        return async (procedure: K, ...params: Parameters<T[K]>) => {
+            const data = toFormData(params);
 
-    public async callWithProgress<K extends keyof T & string>(onProgress: (progress: number) => any, procedure: K, ...params: Parameters<T[K]>) {
-        const data = toFormData(params);
-
-        const response = await request<ReturnType<T[K]>>({
-            url: this.endpoint,
-            method: "post",
-            headers: { "X-RPC-Procedure": procedure },
-            data,
-            onUploadProgress: event => onProgress(event.loaded / event.total),
-        });
-
-        if(response.code < 400) {
-            const result: ISuccess = { 
-                type: "success",
-                code: response.code,
-                data: response.data!,
-            };
-    
-            return result;
-        } else {
-            const result: IFail = {
-                type: "fail",
-                code: response.code,
-                error: response.error!,
-            };
-            
-            return result;
-        }
-    }
-
-    public async callMaybe<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>) {
-        const hash = createHash(JSON.stringify({ procedure, params }));
-
-        const fromCache = this.cachedMaybes.get(hash);
-        const now = new Date().getTime();
-
-        if(!fromCache || now - fromCache.date > cacheTime) {
-            const response = await this.call(procedure, ...params);
-            
-            if(response.type === "success") {
-                this.cachedMaybes.set(hash, { date: now });
+            const requestConfig: AxiosRequestConfig = {
+                url: this.endpoint,
+                method: "post",
+                headers: { "X-RPC-Procedure": procedure },
+                data,
             }
 
-            return response;
-        } else {
-            const response: INoCall = {
-                type: "noCall",
-            };
-
-            return response;
-        }
-    }
-    
-    public async callCached<K extends keyof T & string>(cacheTime: number, procedure: K, ...params: Parameters<T[K]>) {
-        const hash = createHash(JSON.stringify({ procedure, params }));
-
-        const fromCache = this.cachedResponses.get(hash);
-        const now = new Date().getTime();
-
-        if(!fromCache || now - fromCache.date > cacheTime) {
-            const response = await this.call(procedure, ...params);
-            
-            if(response.type === "success") {
-                this.cachedResponses.set(hash, { date: now, response });
+            if(options && options.onProgress) {
+                requestConfig.onUploadProgress = event => options.onProgress!(event.loaded / event.total);
             }
 
-            return response;
-        } else {
-            return fromCache.response;
-        }
+            const response = await request<ReturnType<T[K]>>(requestConfig);
+
+            if(response.code < 400) {
+                const result: ISuccess = { 
+                    type: "success",
+                    code: response.code,
+                    data: response.data!,
+                };
+        
+                return result;
+            } else {
+                const result: IFail = {
+                    type: "fail",
+                    code: response.code,
+                    error: response.error!,
+                };
+                
+                return result;
+            }
+        };
+    }
+
+    public callCached<K extends keyof T & string>(options: ICallCachedOptions) {
+        return async (procedure: K, ...params: Parameters<T[K]>) => {
+            const hash = createHash(JSON.stringify({ procedure, params }));
+
+            const fromCache = this.cachedResponses.get(hash);
+            const now = new Date().getTime();
+
+            if(!fromCache || now - fromCache.date > options.cacheTime) {
+                const response = await this.call(options)(procedure, ...params);
+                
+                if(response.type === "success") {
+                    this.cachedResponses.set(hash, { date: now, response });
+                }
+
+                return response;
+            } else {
+                return fromCache.response;
+            }
+        };
+    }
+
+    public callMaybe<K extends keyof T & string>(options: ICallCachedOptions) {
+        return async (procedure: K, ...params: Parameters<T[K]>) => {
+            const hash = createHash(JSON.stringify({ procedure, params }));
+
+            const fromCache = this.cachedMaybes.get(hash);
+            const now = new Date().getTime();
+
+            if(!fromCache || now - fromCache.date > options.cacheTime) {
+                const response = await this.call(options)(procedure, ...params);
+                
+                if(response.type === "success") {
+                    this.cachedMaybes.set(hash, { date: now });
+                }
+
+                return response;
+            } else {
+                const response: INoCall = {
+                    type: "noCall",
+                };
+
+                return response;
+            }
+        };
     }
 }
 
