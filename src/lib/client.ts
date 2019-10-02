@@ -285,9 +285,3 @@ function createHash(str: string) {
      * signed int to an unsigned by doing an unsigned bitshift. */
     return h >>> 0;
 }
-
-const api = new API<{ test: (a: number, b: number) => number; }>("http://localhost:3000");
-
-
-(api as IAPI<{  test: (a: number, b: number) => number; }>).createRequest("test", 2, 4).call().then(r => { if (r.type === "success") r.data })
-// api.call()("test", 1, 2).then(r => { if(r.type === "success") r.data})

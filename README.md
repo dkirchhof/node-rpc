@@ -45,12 +45,24 @@ import { IApi } from "../common/IApi";
 
 const api = API<IApi>("http://localhost:3000");
 
-api("subtract", 10, 4)
-    .onProgress(p => console.log("progress", p))
-    .onSuccess(r => console.log("success", r))
-    .onFailure(e => console.log("failure", e));
+api.createRequest("subtract", 10, 4).call().then(r => { 
+    if (r.type === "success") {
+        console.log(r.data);
+    }
+});
 
-api("toUpperCase", "hello world!")
-    .onSuccess(r => console.log(r))
-    .onFailure(e => console.log(e))
+api.call()("subtract", 10, 4).then(r => { 
+    if (r.type === "success") {
+        console.log(r.data);
+    }
+});
+
+// api("subtract", 10, 4)
+//     .onProgress(p => console.log("progress", p))
+//     .onSuccess(r => console.log("success", r))
+//     .onFailure(e => console.log("failure", e));
+
+// api("toUpperCase", "hello world!")
+//     .onSuccess(r => console.log(r))
+    // .onFailure(e => console.log(e))
 ```
