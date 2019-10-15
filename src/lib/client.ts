@@ -1,10 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 
 export interface IAPI<T extends any> {
-    call: (options?: ICallBaseOptions) => CallFunction<T>;
-    callCached: (options: ICallCachedOptions) => CallFunction<T>;
-    callMaybe: (options: ICallCachedOptions) => CallFunction<T>;
-
     createRequest: <K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) => {
         call: (options?: ICallBaseOptions) => Promise<ISuccess<ReturnType<T[K]>> | IFail>;
         callCached: (options: ICallCachedOptions) => Promise<ISuccess<ReturnType<T[K]>> | IFail>;
@@ -44,98 +40,6 @@ export class API<T extends any> implements IAPI<T> {
     private readonly cachedResponses = new Map<number, { date: number; response: ISuccess<any>; }>();
 
     constructor(private readonly endpoint: string) { }
-
-    /**
-     * @deprecated
-     */
-    public call<K extends keyof T & string>(options?: ICallBaseOptions) {
-        return async (procedure: K, ...params: Parameters<T[K]>) => {
-            const data = toFormData(params);
-
-            const requestConfig: AxiosRequestConfig = {
-                url: this.endpoint,
-                method: "post",
-                headers: { "X-RPC-Procedure": procedure },
-                data,
-            }
-
-            if (options && options.onProgress) {
-                requestConfig.onUploadProgress = event => options.onProgress!(event.loaded / event.total);
-            }
-
-            const response = await request<ReturnType<T[K]>>(requestConfig);
-
-            if (response.code < 400) {
-                const result: ISuccess = {
-                    type: "success",
-                    code: response.code,
-                    data: response.data!,
-                };
-
-                return result;
-            } else {
-                const result: IFail = {
-                    type: "fail",
-                    code: response.code,
-                    error: response.error!,
-                };
-
-                return result;
-            }
-        };
-    }
-
-    /**
-     * @deprecated
-     */
-    public callCached<K extends keyof T & string>(options: ICallCachedOptions) {
-        return async (procedure: K, ...params: Parameters<T[K]>) => {
-            const hash = createHash(JSON.stringify({ procedure, params }));
-
-            const fromCache = this.cachedResponses.get(hash);
-            const now = new Date().getTime();
-
-            if (!fromCache || now - fromCache.date > options.cacheTime) {
-                const response = await this.call(options)(procedure, ...params);
-
-                if (response.type === "success") {
-                    this.cachedResponses.set(hash, { date: now, response });
-                }
-
-                return response;
-            } else {
-                return fromCache.response;
-            }
-        };
-    }
-
-    /**
-     * @deprecated
-     */
-    public callMaybe<K extends keyof T & string>(options: ICallCachedOptions) {
-        return async (procedure: K, ...params: Parameters<T[K]>) => {
-            const hash = createHash(JSON.stringify({ procedure, params }));
-
-            const fromCache = this.cachedMaybes.get(hash);
-            const now = new Date().getTime();
-
-            if (!fromCache || now - fromCache.date > options.cacheTime) {
-                const response = await this.call(options)(procedure, ...params);
-
-                if (response.type === "success") {
-                    this.cachedMaybes.set(hash, { date: now });
-                }
-
-                return response;
-            } else {
-                const response: INoCall = {
-                    type: "noCall",
-                };
-
-                return response;
-            }
-        };
-    }
 
     public createRequest<K extends keyof T & string>(procedure: K, ...params: Parameters<T[K]>) {
         const call = async (options?: ICallBaseOptions): Promise<ISuccess<ReturnType<T[K]>> | IFail> => {
@@ -220,7 +124,6 @@ export class API<T extends any> implements IAPI<T> {
         };
     }
 }
-
 
 function toFormData(params: any[]) {
     const data = new FormData();

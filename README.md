@@ -51,11 +51,11 @@ api.createRequest("subtract", 10, 4).call().then(r => {
     }
 });
 
-api.call()("subtract", 10, 4).then(r => { 
-    if (r.type === "success") {
-        console.log(r.data);
-    }
-});
+// api.call()("subtract", 10, 4).then(r => { 
+//     if (r.type === "success") {
+//         console.log(r.data);
+//     }
+// });
 
 // api("subtract", 10, 4)
 //     .onProgress(p => console.log("progress", p))
