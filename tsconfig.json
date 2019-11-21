@@ -3,11 +3,6 @@
         "target": "esnext",
         "module": "commonjs",
         "strict": true,
-        "outDir": "",
-        "esModuleInterop": true,
         "declaration": true,
-    },
-    "include": [
-        "src/**/*"
-    ]
+    }
 }
