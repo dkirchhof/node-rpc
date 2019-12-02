@@ -1,6 +1,6 @@
 {
   "name": "@node-rpc/server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -10,5 +10,12 @@
   "devDependencies": {
     "@types/formidable": "^1.0.31"
   },
-  "keywords": ["TypeScript", "rpc", "xhr", "ajax", "http", "file-upload"]
+  "keywords": [
+    "TypeScript",
+    "rpc",
+    "xhr",
+    "ajax",
+    "http",
+    "file-upload"
+  ]
 }
