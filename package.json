@@ -5,7 +5,11 @@
     ],
     "scripts": {
         "build": "tsc -p packages/server/tsconfig.json && tsc -p packages/client/tsconfig.json",
-        "dev": "tsc -p packages/server/tsconfig.json -w && tsc -p packages/client/tsconfig.json"
+        "dev": "tsc -p packages/server/tsconfig.json -w && tsc -p packages/client/tsconfig.json",
+
+        "build-example": "tsc -p packages/example/tsconfig.json",
+        "run-example-client": "node packages/example/dist/client.js",
+        "run-example-server": "micro packages/example/dist/server.js" 
     },
     "devDependencies": {
         "typescript": "^3.7.2"
