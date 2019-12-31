@@ -1,5 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Creates a form data object with param index as key and a json string or file / filelist as value.
+ */
 exports.jsonFormDataSerializer = {
     contentType: "application/x-www-form-urlencoded",
     serialize: params => {

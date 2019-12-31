@@ -8,7 +8,7 @@ export interface IFail {
     code: number;
     error: string;
 }
-export interface INoCall {
-    type: "noCall";
+export interface INoResponse {
+    type: "noResponse";
 }
-export declare type Response<T = any> = ISuccess<T> | IFail | INoCall;
+export declare type Response<T = any> = ISuccess<T> | IFail | INoResponse;

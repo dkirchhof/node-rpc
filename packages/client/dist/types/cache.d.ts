@@ -1,5 +1,5 @@
-import { INoCall, ISuccess } from "../types/response";
+import { INoResponse, ISuccess } from "../types/response";
 export declare type Cache = Map<number, {
     date: number;
-    response: ISuccess | INoCall;
+    response: ISuccess | INoResponse;
 }>;

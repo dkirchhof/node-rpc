@@ -1,11 +1,11 @@
 import { Cache } from "../types/cache";
 import { Callables, ICallOptions, Callable } from "../types/callable";
 import { IClientOptions } from "../types/client";
-import { INoCall, ISuccess } from "../types/response";
+import { INoResponse, ISuccess } from "../types/response";
 import { createHash } from "../utils/hash";
 
 const nullOp = () => { };
-const noCallResponse: INoCall = { type: "noCall" };
+const noResponse: INoResponse = { type: "noResponse" };
 
 function createCallFn(clientOptions: IClientOptions, cache: Cache) {
     return (procedure: string | number | symbol, params: any[]) => {
@@ -42,12 +42,12 @@ function createCallFn(clientOptions: IClientOptions, cache: Cache) {
             });
 
             // if request should use the cache, save a successfull request
-            // according to the passed option, save the reponse or a nocall to the cache 
+            // according to the passed option, save the reponse
             if (options.cache) {
                 if (response.type === "success") {
                     cache.set(hash, {
                         date: new Date().getTime(),
-                        response: options.cache.saveResponse ? response : noCallResponse,
+                        response: options.cache.saveResponse ? response : noResponse,
                     });
                 }
             }
@@ -57,8 +57,8 @@ function createCallFn(clientOptions: IClientOptions, cache: Cache) {
     };
 }
 
-export function createProxyClient<API>(clientOptions: IClientOptions) {
-    const cache = new Map<number, { date: number; response: ISuccess | INoCall; }>();
+export function createClient<API>(clientOptions: IClientOptions) {
+    const cache = new Map<number, { date: number; response: ISuccess | INoResponse; }>();
     const callFn = createCallFn(clientOptions, cache);
 
     return new Proxy({}, {
@@ -74,8 +74,8 @@ export function createProxyClient<API>(clientOptions: IClientOptions) {
     }) as Callables<API>;
 }
 
-export function createClient<API extends any>(clientOptions: IClientOptions) {
-    const cache = new Map<number, { date: number; response: ISuccess | INoCall; }>();
+export function createFallbackClient<API extends any>(clientOptions: IClientOptions) {
+    const cache = new Map<number, { date: number; response: ISuccess | INoResponse; }>();
     const callFn = createCallFn(clientOptions, cache);
 
     return {

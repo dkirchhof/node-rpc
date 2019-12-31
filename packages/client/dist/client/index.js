@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const hash_1 = require("../utils/hash");
 const nullOp = () => { };
-const noCallResponse = { type: "noCall" };
+const noResponse = { type: "noResponse" };
 function createCallFn(clientOptions, cache) {
     return (procedure, params) => {
         return (options = {}) => __awaiter(this, void 0, void 0, function* () {
@@ -39,12 +39,12 @@ function createCallFn(clientOptions, cache) {
                 onUploadProgress: options.onUploadProgress || nullOp,
             });
             // if request should use the cache, save a successfull request
-            // according to the passed option, save the reponse or a nocall to the cache 
+            // according to the passed option, save the reponse
             if (options.cache) {
                 if (response.type === "success") {
                     cache.set(hash, {
                         date: new Date().getTime(),
-                        response: options.cache.saveResponse ? response : noCallResponse,
+                        response: options.cache.saveResponse ? response : noResponse,
                     });
                 }
             }
@@ -52,7 +52,7 @@ function createCallFn(clientOptions, cache) {
         });
     };
 }
-function createProxyClient(clientOptions) {
+function createClient(clientOptions) {
     const cache = new Map();
     const callFn = createCallFn(clientOptions, cache);
     return new Proxy({}, {
@@ -66,8 +66,8 @@ function createProxyClient(clientOptions) {
         },
     });
 }
-exports.createProxyClient = createProxyClient;
-function createClient(clientOptions) {
+exports.createClient = createClient;
+function createFallbackClient(clientOptions) {
     const cache = new Map();
     const callFn = createCallFn(clientOptions, cache);
     return {
@@ -79,4 +79,4 @@ function createClient(clientOptions) {
         },
     };
 }
-exports.createClient = createClient;
+exports.createFallbackClient = createFallbackClient;
