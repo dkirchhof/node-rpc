@@ -10,8 +10,9 @@ export const axiosXHR: XHRFunction = async options => {
         url: options.endpoint,
         method: "post",
         headers: {
-            "X-RPC-Procedure": options.procedure,
+            "Authorization": options.auth,
             "Content-Type": options.contentType,
+            "X-RPC-Procedure": options.procedure,
         },
         data: options.data,
         onDownloadProgress: onProgress(options.onDownloadProgress),

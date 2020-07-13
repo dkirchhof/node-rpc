@@ -15,6 +15,7 @@ const noResponse = { type: "noResponse" };
 function createCallFn(clientOptions, cache) {
     return (procedure, params) => {
         return (options = {}) => __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
             let hash = 0;
             // if request should use the cache, check if the response is already cached
             if (options.cache) {
@@ -32,6 +33,7 @@ function createCallFn(clientOptions, cache) {
             const data = clientOptions.serializer.serialize(params);
             const response = yield clientOptions.xhr({
                 endpoint: clientOptions.endpoint,
+                auth: ((_b = (_a = clientOptions).getAuth) === null || _b === void 0 ? void 0 : _b.call(_a)) || "",
                 contentType: clientOptions.serializer.contentType,
                 procedure,
                 data,

@@ -22,8 +22,9 @@ export const fetchXHR: XHRFunction = async options => {
     const config: RequestInit = {
         method: "post",
         headers: {
-            "X-RPC-Procedure": options.procedure.toString(),
+            "Authorization": options.auth,
             "Content-Type": options.contentType,
+            "X-RPC-Procedure": options.procedure.toString(),
         },
         body: options.data,
     };

@@ -17,6 +17,8 @@ const rpcServer = createServer({
 });
 
 export default async function (req: IncomingMessage, res: ServerResponse) {
+    console.log(req.headers.authorization);
+
     const result = await rpcServer.handleAPIRequest(req);
     console.log(result);
 

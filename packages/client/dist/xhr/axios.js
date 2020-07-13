@@ -16,8 +16,9 @@ exports.axiosXHR = (options) => __awaiter(void 0, void 0, void 0, function* () {
         url: options.endpoint,
         method: "post",
         headers: {
-            "X-RPC-Procedure": options.procedure,
+            "Authorization": options.auth,
             "Content-Type": options.contentType,
+            "X-RPC-Procedure": options.procedure,
         },
         data: options.data,
         onDownloadProgress: onProgress(options.onDownloadProgress),

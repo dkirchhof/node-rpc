@@ -30,6 +30,7 @@ This library is splitted into two packages. One for the [client / sender](https:
     - `endpoint`: Url of the server
     - `serializer`: A serializer, which will convert the function params into an xhr compatible format. The serializer should match the deserializer of the server. Please find more information [here](#serialization). 
     - `xhr`: A function, which will create and send the request. Please find more information [here](#sending-a-request).
+    - `auth`: A function, which will inject a string to the authorization header.
 
     ```ts
     import { createClient } from "@node-rpc/client";
@@ -41,6 +42,7 @@ This library is splitted into two packages. One for the [client / sender](https:
         endpoint: "http://localhost:3000",
         serializer: jsonSerializer,
         xhr: axiosXHR,
+        auth: () => "secret",
     });
     ```
 
@@ -154,12 +156,25 @@ import { IApi } from "./common.ts";
 
     const request = (req: IncominMessage, res: ServerResponse) => {
         try {
+            // get the authorization token
+            const token = req.headers.authorization;
+            console.log(token);
+
+            // call api function
             const result = await rpcServer.handleAPIRequest(req, api);
+
+            // send the result back to the client
             res.send(result);
         } catch(e) {
             return await res.send(res, 500, e.message);
         }
     };
+
+    // add it as a route in express
+    // => app.post("/", request)
+
+    // or export it as default function for micro
+    // => export default request
     ```
 
 ## Serialization

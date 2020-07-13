@@ -4,4 +4,5 @@ export interface IClientOptions {
     endpoint: string;
     serializer: ISerializer;
     xhr: XHRFunction;
+    getAuth?: () => string;
 }

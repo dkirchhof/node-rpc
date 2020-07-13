@@ -30,15 +30,19 @@ This library is splitted into two packages. One for the [client / sender](https:
     - `endpoint`: Url of the server
     - `serializer`: A serializer, which will convert the function params into an xhr compatible format. The serializer should match the deserializer of the server. Please find more information [here](#serialization). 
     - `xhr`: A function, which will create and send the request. Please find more information [here](#sending-a-request).
+    - `auth`: A function, which will inject a string to the authorization header.
 
     ```ts
-    import { axiosXHR, createClient, jsonSerializer } from "@node-rpc/client";
+    import { createClient } from "@node-rpc/client";
+    import { jsonSerializer } from "@node-rpc/client/dist/serializers/jsonSerializer";
+    import { axiosXHR } from "@node-rpc/client/dist/xhr/axios";
     import { IApi } from "./common.ts";
 
     const api = createClient<IApi>({
         endpoint: "http://localhost:3000",
         serializer: jsonSerializer,
         xhr: axiosXHR,
+        auth: () => "secret",
     });
     ```
 
@@ -136,7 +140,8 @@ import { IApi } from "./common.ts";
     - `deserializer`: A deserializer, which will convert the request body to an array of params. Please find more information [here](#serialization).
 
     ```ts
-    import { createServer, jsonDeserializer } from "@node-rpc/server";
+    import { createServer } from "@node-rpc/server";
+    import { jsonDeserializer } from "@node-rpc/server/dist/deserializers/jsonDeserializer";
 
     const rpcServer = createServer({
         api,
@@ -151,12 +156,25 @@ import { IApi } from "./common.ts";
 
     const request = (req: IncominMessage, res: ServerResponse) => {
         try {
+            // get the authorization token
+            const token = req.headers.authorization;
+            console.log(token);
+
+            // call api function
             const result = await rpcServer.handleAPIRequest(req, api);
+
+            // send the result back to the client
             res.send(result);
         } catch(e) {
             return await res.send(res, 500, e.message);
         }
     };
+
+    // add it as a route in express
+    // => app.post("/", request)
+
+    // or export it as default function for micro
+    // => export default request
     ```
 
 ## Serialization
@@ -189,13 +207,14 @@ export interface IDeserializer {
 
 ## Sending a request
 
-You have to tell the rpc client, how it should send a request to the server. It could use the old `XMLHttpRequest`, the new `Fetch API` or any other third party library. There is one implementation included:
+You have to tell the rpc client, how it should send a request to the server. It could use the old `XMLHttpRequest`, the new `Fetch API` or any other third party library. There are two implementations included:
 
+- `fetchXHR`: This xhr function uses the native [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) api. It can't track the progress of a request.
 - `axiosXHR`: This xhr function uses the [axios](https://www.npmjs.com/package/axios) package, so you have to install it for the client. It has the advantage over the native browser api, that it can track the download and upload progress.
 
 ### Custom xhr function
 
-You can implement your own xhr functions, if you don't want to rely on axios. The `XHRFunction` type defines, how it should look like.
+You can implement your own xhr functions, if you don't want to rely on the native fetch api or on axios. The `XHRFunction` type defines, how it should look like.
 
 ```ts
 export interface IXHROptions {

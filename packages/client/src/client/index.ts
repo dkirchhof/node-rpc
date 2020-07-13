@@ -34,6 +34,7 @@ function createCallFn(clientOptions: IClientOptions, cache: Cache) {
 
             const response = await clientOptions.xhr({
                 endpoint: clientOptions.endpoint,
+                auth: clientOptions.getAuth?.() || "",
                 contentType: clientOptions.serializer.contentType,
                 procedure,
                 data,

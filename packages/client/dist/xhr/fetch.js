@@ -26,8 +26,9 @@ exports.fetchXHR = (options) => __awaiter(void 0, void 0, void 0, function* () {
     const config = {
         method: "post",
         headers: {
-            "X-RPC-Procedure": options.procedure.toString(),
+            "Authorization": options.auth,
             "Content-Type": options.contentType,
+            "X-RPC-Procedure": options.procedure.toString(),
         },
         body: options.data,
     };

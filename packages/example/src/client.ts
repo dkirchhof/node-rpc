@@ -3,16 +3,20 @@ import { jsonSerializer } from "@node-rpc/client/dist/serializers/jsonSerializer
 import { axiosXHR } from "@node-rpc/client/dist/xhr/axios";
 import { IApi } from "./common";
 
+const token = "secret";
+
 const api = createClient<IApi>({
     endpoint: "http://localhost:3000",
     serializer: jsonSerializer,
     xhr: axiosXHR,
+    getAuth: () => token, 
 });
 
 const fallbackApi = createFallbackClient<IApi>({
     endpoint: "http://localhost:3000",
     serializer: jsonSerializer,
     xhr: axiosXHR,
+    getAuth: () => token, 
 });
 
 async function test() {

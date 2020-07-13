@@ -6,6 +6,7 @@ export interface IXHROptions {
     procedure: string | number | symbol;
     data: string;
     contentType: string;
+    auth: string;
 
     onDownloadProgress: ProgressCallback;
     onUploadProgress: ProgressCallback;
