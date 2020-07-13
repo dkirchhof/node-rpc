@@ -192,13 +192,14 @@ export interface IDeserializer {
 
 ## Sending a request
 
-You have to tell the rpc client, how it should send a request to the server. It could use the old `XMLHttpRequest`, the new `Fetch API` or any other third party library. There is one implementation included:
+You have to tell the rpc client, how it should send a request to the server. It could use the old `XMLHttpRequest`, the new `Fetch API` or any other third party library. There are two implementations included:
 
+- `fetchXHR`: This xhr function uses the native [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) api. It can't track the progress of a request.
 - `axiosXHR`: This xhr function uses the [axios](https://www.npmjs.com/package/axios) package, so you have to install it for the client. It has the advantage over the native browser api, that it can track the download and upload progress.
 
 ### Custom xhr function
 
-You can implement your own xhr functions, if you don't want to rely on axios. The `XHRFunction` type defines, how it should look like.
+You can implement your own xhr functions, if you don't want to rely on the native fetch api or on axios. The `XHRFunction` type defines, how it should look like.
 
 ```ts
 export interface IXHROptions {
