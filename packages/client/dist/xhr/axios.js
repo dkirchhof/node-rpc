@@ -43,7 +43,7 @@ exports.axiosXHR = (options) => __awaiter(void 0, void 0, void 0, function* () {
         // something went totally wrong
         return {
             type: "fail",
-            code: 500,
+            code: 400,
             error: e.message,
         };
     }

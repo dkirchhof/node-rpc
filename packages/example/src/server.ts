@@ -1,4 +1,5 @@
-import { createServer, jsonDeserializer } from "@node-rpc/server";
+import { createServer } from "@node-rpc/server";
+import { jsonDeserializer } from "@node-rpc/server/dist/deserializers/jsonDeserializer";
 import { IncomingMessage, ServerResponse } from "http";
 
 import { IApi } from "./common";

@@ -32,7 +32,9 @@ This library is splitted into two packages. One for the [client / sender](https:
     - `xhr`: A function, which will create and send the request. Please find more information [here](#sending-a-request).
 
     ```ts
-    import { axiosXHR, createClient, jsonSerializer } from "@node-rpc/client";
+    import { createClient } from "@node-rpc/client";
+    import { jsonSerializer } from "@node-rpc/client/dist/serializers/jsonSerializer";
+    import { axiosXHR } from "@node-rpc/client/dist/xhr/axios";
     import { IApi } from "./common.ts";
 
     const api = createClient<IApi>({
@@ -136,7 +138,8 @@ import { IApi } from "./common.ts";
     - `deserializer`: A deserializer, which will convert the request body to an array of params. Please find more information [here](#serialization).
 
     ```ts
-    import { createServer, jsonDeserializer } from "@node-rpc/server";
+    import { createServer } from "@node-rpc/server";
+    import { jsonDeserializer } from "@node-rpc/server/dist/deserializers/jsonDeserializer";
 
     const rpcServer = createServer({
         api,

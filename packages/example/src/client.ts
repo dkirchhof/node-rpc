@@ -1,4 +1,6 @@
-import { axiosXHR, createClient, createFallbackClient, jsonSerializer } from "@node-rpc/client";
+import { createClient, createFallbackClient } from "@node-rpc/client";
+import { jsonSerializer } from "@node-rpc/client/dist/serializers/jsonSerializer";
+import { axiosXHR } from "@node-rpc/client/dist/xhr/axios";
 import { IApi } from "./common";
 
 const api = createClient<IApi>({

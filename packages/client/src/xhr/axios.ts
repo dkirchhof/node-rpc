@@ -40,7 +40,7 @@ export const axiosXHR: XHRFunction = async options => {
         // something went totally wrong
         return {
             type: "fail",
-            code: 500,
+            code: 400,
             error: e.message,
         };
     }
