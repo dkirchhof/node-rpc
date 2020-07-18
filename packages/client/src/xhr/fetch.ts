@@ -4,7 +4,7 @@ const getData = (response: Response) => {
     const contentType = response.headers.get("content-type");
 
     if (!contentType) {
-        throw new Error("Can't determine content type.");
+        return;
     }
 
     if (contentType.includes("text/html")) {
@@ -31,7 +31,6 @@ export const fetchXHR: XHRFunction = async options => {
 
     try {
         const result = await fetch(options.endpoint, config);
-
         const data = await getData(result);
 
         if (!result.ok) {

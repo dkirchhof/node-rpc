@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const getData = (response) => {
     const contentType = response.headers.get("content-type");
     if (!contentType) {
-        throw new Error("Can't determine content type.");
+        return;
     }
     if (contentType.includes("text/html")) {
         return response.text();
