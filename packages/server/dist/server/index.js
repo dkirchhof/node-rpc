@@ -12,11 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const deleteFilesGracefully_1 = require("../utils/deleteFilesGracefully");
 function createServer(options) {
     return {
-        handleAPIRequest: (req) => __awaiter(this, void 0, void 0, function* () {
+        handleAPIRequest: (req, context) => __awaiter(this, void 0, void 0, function* () {
             const procedureName = req.headers["x-rpc-procedure"];
             const procedure = options.api[procedureName];
             const { params, filePaths } = yield options.deserializer.deserialize(req);
-            return Promise.resolve(procedure(...params))
+            return Promise.resolve(procedure(...params)(context))
                 .finally(() => deleteFilesGracefully_1.deleteFilesGracefully(filePaths));
         }),
     };

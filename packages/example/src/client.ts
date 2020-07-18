@@ -23,8 +23,8 @@ async function test() {
     console.log(await api.add(3, 4).call({ cache: { time: 60000, saveResponse: false } })); // 7
     console.log(await api.add(3, 4).call({ cache: { time: 60000, saveResponse: false } })); // no call
 
-    console.log(await fallbackApi.createRequest("toUpperCase", "test").call({ cache: { time: 60000, saveResponse: false } })); // TEST
-    console.log(await fallbackApi.createRequest("toUpperCase", "test").call({ cache: { time: 60000, saveResponse: false } })); // no call
+    console.log(await fallbackApi.createRequest("toLocaleString", 1.5).call({ cache: { time: 60000, saveResponse: false } })); // TEST
+    console.log(await fallbackApi.createRequest("toLocaleString", 1.5).call({ cache: { time: 60000, saveResponse: false } })); // no call
 }
 
 test();

@@ -124,13 +124,19 @@ import { IApi } from "./common.ts";
 1. Create the implementation of the api interface on your server.  
 
     ```ts
+    import { RPCFunctions } from "@node-rpc/server";
     import { IApi } from "./common.ts";
 
-    const api: IApi = {
-        add: (a: number, b: number) => a + b,
-        subtract: (a: number, b: number) => a - b,
+    // define a custom context interface, which will be passed to each rpc function
+    interface IContext {
+        lang: string;
+    }
+
+    const api: RPCFunctions<IApi, IContext> = {
+        add: (a: number, b: number) => () => a + b,
+        subtract: (a: number, b: number) => () => a - b,
         
-        toUpperCase: (str: string) => str.toUpperCase(),
+        toLocaleString: (num: number) => (context: IContext) => num.toLocaleString(context.lang), 
     };
     ```
 
@@ -156,12 +162,11 @@ import { IApi } from "./common.ts";
 
     const request = (req: IncominMessage, res: ServerResponse) => {
         try {
-            // get the authorization token
-            const token = req.headers.authorization;
-            console.log(token);
+            // get the accepted language, use "en" as fallback
+            const lang = req.headers["accept-language"]?.split(",")?.[0] || "en";
 
-            // call api function
-            const result = await rpcServer.handleAPIRequest(req, api);
+            // call the rpc function and pass the additional context
+            const result = await rpcServer.handleAPIRequest(req, { lang });
 
             // send the result back to the client
             res.send(result);
@@ -170,7 +175,7 @@ import { IApi } from "./common.ts";
         }
     };
 
-    // add it as a route in express
+    // now you can add it for example as a route in express
     // => app.post("/", request)
 
     // or export it as default function for micro
